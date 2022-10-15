@@ -1,0 +1,3 @@
+[{"customer_name": "John", "customer_address": "Unit 2, 12 Main Street, LONDON, WH1 2ER", "customer_phone": "0789887334", "courier": 2, "status": "Preparing", "items": [1, 2]}, 
+
+{"customer_name": "Claire", "customer_address": "Unit 7, 12 High Street, Derby, DE24 8PZ", "customer_phone": "0789887334", "courier": 3, "status": "Shipped", "items": [1, 3]}]
