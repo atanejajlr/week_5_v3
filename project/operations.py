@@ -120,7 +120,14 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
     
        
     """
-    This function has the product options. Notice the recursive call
+    This function has the CRUD operations. That is, either: 
+    
+    1) We read from the database and print outputs (Read)
+    2) We create soemthing new in the database (create either a product or courier or an order)
+    3) We update the database (either a product, courier or order)
+    4) We delete an objbect from the database (product, courier or an order)
+    
+    Notice the recursive call
     
     """
  
@@ -132,13 +139,13 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         item_option = get_item_menu(main_option)
         get_item_menu_opts(item_option, options_tuple, prod_list, courier_list, orders_dictlist, order_statuslist)
         
-    elif item_option == 1:
+    elif item_option == 1: # reading from the database (sql or no sql)
         
         print("Getting your " + options_tuple[0] + " list....Hold on!")
         time.sleep(4)
         print_items(options_tuple[-1])
         
-    elif item_option == 2 and options_tuple[0] != "order":
+    elif item_option == 2 and options_tuple[0] != "order": # creating order or courier in the database
         
         print_items(options_tuple[-1])
         inputted_list = create_item("Input: Name of the new " + options_tuple[0] + " please?\n", \
@@ -149,7 +156,7 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         print("The appended list: ")
         print_items(options_tuple[-1])
         
-    elif item_option == 3 and options_tuple[0] != "order":
+    elif item_option == 3 and options_tuple[0] != "order": # updating a database
         
         print_items(options_tuple[-1])
         inputted_list = create_item("Input: Name of the new " + options_tuple[0] + " please?\n", \
@@ -160,10 +167,10 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         print("The updated list: ")
         print_items(options_tuple[-1])
         
-    elif item_option == 4 and options_tuple[0] != "order":
+    elif item_option == 4  or item_option == 5: # deleting from the database
         _ = delete_item(options_tuple[-1])
     
-    elif item_option == 2 and options_tuple[0] == "order":
+    elif item_option == 2 and options_tuple[0] == "order": # creating 
         
         print_items(options_tuple[-1])
         inputted_list = create_item("Input: Please enter customer name\n", 
@@ -183,7 +190,7 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         print("Appended order details:\n")
         print_items(options_tuple[-1])
         
-    elif item_option == 3 and options_tuple[0] == "order":
+    elif item_option == 3 and options_tuple[0] == "order": #creating order in the database
         
         print_items(options_tuple[-1])
         range_limit = len(options_tuple[-1]) - 1
@@ -199,7 +206,7 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         print("Appended order details:\n")
         print_items(options_tuple[-1])
         
-    elif item_option == 4 and options_tuple[0] == "order":
+    elif item_option == 4 and options_tuple[0] == "order": #updating order in the database
         
         print_items(options_tuple[-1])
         range_limit = len(options_tuple[-1]) - 1
@@ -207,10 +214,7 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         user_order_index = get_input_ints(range_limit)
         update_order(options_tuple[-1][user_order_index], prod_list)
       
-    elif item_option == 5 and options_tuple[0] == "order":
-        _ = delete_item(options_tuple[-1])
-           
-        
+         
     else:
         product_option = print('Input index value within the range specified please:')
         product_option = get_input_ints(5)
