@@ -68,6 +68,15 @@ def execute_query(query: string, connect, input_data: Tuple):
         cursor.execute(query, input_data)
         connect.commit()
         
+def get_item_query(table_name):
+    
+    items_result = f"""
+                SELECT * FROM {table_name}
+                
+                """
+    
+    return items_result
+        
 
 
     

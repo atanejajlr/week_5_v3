@@ -3,6 +3,7 @@ from typing import Dict, List, Tuple
 from utils import delete_item, get_input_ints, dump_json, print_items,  \
     create_item, delete_item, validate_phone_number, print_items_formatted
 from orders import create_prodids, update_order
+from mysqlutils import read_from_db, get_item_query
 
 
 
@@ -74,8 +75,8 @@ def get_item_menu(user_selection: str):
         while_range = 5
     
     
-    product_option = get_input_ints(while_range)
-    return product_option
+    crud_option = get_input_ints(while_range)
+    return crud_option
 
 
 def get_main_menu_opts(main_option: int, prod_list: List[Dict], couriers_list: List[Dict], 
@@ -116,9 +117,7 @@ def get_main_menu_opts(main_option: int, prod_list: List[Dict], couriers_list: L
         get_main_menu_opts(main_option, prod_list, couriers_list, orders_dictlist)
         
         
-def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[Dict], courier_list: List[Dict], 
-                        orders_dictlist: List[Dict], order_statuslist: List[str], sql_no_sql_create, 
-                        sql_no_sql_update, connect, main_menu_selection):
+def get_item_menu_opts(crud_option: int, item_opts_possible: Tuple, connect, main_menu_selection, sql_no_sql_create):
     
        
     """
@@ -134,51 +133,52 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
     """
  
        
-    if item_option == 0:
+    if crud_option == 0:
         
         user_option = get_main_menu()
         main_option = get_main_menu_opts(user_option)
-        item_option = get_item_menu(main_option)
-        get_item_menu_opts(item_option, options_tuple, prod_list, courier_list, orders_dictlist, order_statuslist)
+        crud_option = get_item_menu(main_option)
+        #get_item_menu_opts(crud_option, item_opts_possible, prod_list, courier_list, orders_dictlist, order_statuslist)
+        get_item_menu_opts(crud_option, item_opts_possible, connect, main_menu_selection)
         
-    elif item_option == 1: # reading from the database (sql or no sql)
+    elif crud_option == 1: # reading from the database (sql or no sql)
         
-        print("Getting your " + options_tuple[0] + " list....Hold on!")
+        print("Getting your " + item_opts_possible[0] + " list....Hold on!")
         time.sleep(4)
-        print_items_formatted(options_tuple[-1])
+        print_items_formatted(item_opts_possible[-1])
           
-    elif item_option == 2 and options_tuple[0] != "order": # creating order or courier in the database
+    elif crud_option == 2 and item_opts_possible[0] == "product": # creating a new product in the database
         
-        print_items(options_tuple[-1])
-        inputted_list = create_item("Input: Name of the new " + options_tuple[0] + " please?\n", \
-                        "Input: " + options_tuple[1].capitalize() + " of the new " + options_tuple[0] + " please?\n")
-        name, price_phone = inputted_list
-        my_dict = {"name": name, options_tuple[1]: price_phone}
-        sql_no_sql_create(connect, my_dict, main_menu_selection) #creating a prod or courier row in the sql /cafe database now
-        #connect, courier_prod_dict: Dict, table_name
-        options_tuple[-1].append(my_dict)
-        print("The appended list: ")
-        print_items_formatted (options_tuple[-1])
+        create_product_courier(item_opts_possible, "prod_name", "prod_price", "products", connect, sql_no_sql_create)
         
+    elif crud_option == 2 and item_opts_possible[0] == "courier": # creating a new courier in the database
         
-    elif item_option == 3 and options_tuple[0] != "order": # updating a database
+        create_product_courier(item_opts_possible, "driver_name", "driver_phone", "couriers", connect, sql_no_sql_create)
         
-        print_items(options_tuple[-1])
-        inputted_list = create_item("Input: Name of the new " + options_tuple[0] + " please?\n", \
-                        "Input: " + options_tuple[1].capitalize() + " of the new " + options_tuple[0] + " please?\n")
-        name, price_phone = inputted_list
-        my_dict = {"name": name, options_tuple[1]: price_phone}              
-        product_index = update_product(options_tuple[-1], my_dict)
-        sql_no_sql_update(connect, my_dict, main_menu_selection)
+    elif crud_option == 3 and item_opts_possible[0] == "product": # updating the product database
+        
+        # print_items(item_opts_possible[-1])
+        # inputted_list = create_item("Input: Name of the new " + item_opts_possible[0] + " please?\n", \
+        #                 "Input: " + item_opts_possible[1].capitalize() + " of the new " + item_opts_possible[0] + " please?\n")
+        # name, price_phone = inputted_list
+        # my_dict = {"name": name, item_opts_possible[1]: price_phone}
+        my_dict = create_product_courier(item_opts_possible, "prod_name", "prod_price", "products", connect, sql_no_sql_create)             
+        product_index = update_product(item_opts_possible[-1], my_dict)
+        #sql_no_sql_update(connect, my_dict, main_menu_selection)
         print("The updated list: ")
-        print_items_formatted(options_tuple[-1])
+        print_items_formatted(item_opts_possible[-1])
         
-    elif item_option == 4  or item_option == 5: # deleting from the database
-        _ = delete_item(options_tuple[-1])
+    elif crud_option == 3 and item_opts_possible[0] == "courier": # updating the courier database
+        my_dict = create_product_courier(item_opts_possible, "driver_name", "driver_phone", "couriers", connect, sql_no_sql_create)
+        product_index = update_product(item_opts_possible[-1], my_dict)
+        
+        
+    elif crud_option == 4  or crud_option == 5: # deleting from the database
+        _ = delete_item(item_opts_possible[-1])
     
-    elif item_option == 2 and options_tuple[0] == "order": # creating 
+    elif crud_option == 2 and item_opts_possible[0] == "orders": # creating 
         
-        print_items(options_tuple[-1])
+        print_items(item_opts_possible[-1])
         inputted_list = create_item("Input: Please enter customer name\n", 
                                     "Input: Please enter customer address\n", 
                                     "Please enter customer phone number\n", 
@@ -187,47 +187,61 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         order_status = 'Preparing'
         customer_phone = validate_phone_number(customer_phone)
         order_items = []
-        prod_ids = create_prodids(prod_list, order_items)
-        my_dict = {"customer_name": customer_name, "customer_address": customer_address, 
-            "customer_phone": customer_phone, "courier": courier_index, 
-            "status": order_status, "items": prod_ids}
-        options_tuple[-1].append(my_dict)
-        dump_json(options_tuple[-1], "data/orders.json")
+        #prod_ids = create_prodids(prod_list, order_items)
+        # my_dict = {"customer_name": customer_name, "customer_address": customer_address, 
+        #     "customer_phone": customer_phone, "courier": courier_index, 
+        #     "status": order_status, "items": prod_ids}
+        item_opts_possible[-1].append(my_dict)
+        dump_json(item_opts_possible[-1], "data/orders.json")
         print("Appended order details:\n")
-        print_items(options_tuple[-1])
+        print_items(item_opts_possible[-1])
         
-    elif item_option == 3 and options_tuple[0] == "order": #updating order in the database
+    elif crud_option == 3 and item_opts_possible[0] == "order": #updating order in the database
         
-        print_items(options_tuple[-1])
-        range_limit = len(options_tuple[-1]) - 1
+        print_items(item_opts_possible[-1])
+        range_limit = len(item_opts_possible[-1]) - 1
         print("You will now have to enter the order number for which you want the status modified\n")
-        print_items(options_tuple[-1])
+        print_items(item_opts_possible[-1])
         user_order_index = get_input_ints(range_limit)
-        range_limit = len(order_statuslist) - 1
-        print_items(order_statuslist)
+        #range_limit = len(order_statuslist) - 1
+        #print_items(order_statuslist)
         print("You will now have to enter the status index to which you want the order to be updated to\n")
         user_status_index = get_input_ints(range_limit)
-        options_tuple[-1][user_order_index]['status'] = order_statuslist[user_status_index]
-        dump_json(options_tuple[-1], "data/orders.json")
+        #item_opts_possible[-1][user_order_index]['status'] = order_statuslist[user_status_index]
+        dump_json(item_opts_possible[-1], "data/orders.json")
         print("Appended order details:\n")
-        print_items(options_tuple[-1])
+        print_items(item_opts_possible[-1])
         
-    elif item_option == 4 and options_tuple[0] == "order": #updating order in the database
+    elif crud_option == 4 and item_opts_possible[0] == "order": #updating order in the database
         
-        print_items(options_tuple[-1])
-        range_limit = len(options_tuple[-1]) - 1
+        print_items(item_opts_possible[-1])
+        range_limit = len(item_opts_possible[-1]) - 1
         print("You will now have to enter the index coresponding to the order you'd like updated\n")
         user_order_index = get_input_ints(range_limit)
-        update_order(options_tuple[-1][user_order_index], prod_list)
+        #update_order(item_opts_possible[-1][user_order_index], prod_list)
       
          
     else:
         product_option = print('Input index value within the range specified please:')
         product_option = get_input_ints(5)
-        get_item_menu_opts (product_option, prod_list)
+        #get_item_menu_opts (product_option, prod_list)
       
         
 def get_status_types():
         
     status_types = ["Processing", "Accepted", "Preparing", "Ready", "Shipped", "Delivered"]
     return status_types
+
+
+def create_product_courier(item_opts_possible, key_1, key_2, table_name, connect, sql_no_sql_create):
+    
+    print_items_formatted (item_opts_possible[-1])
+    inputted_list = create_item("Input: Name of the new " + item_opts_possible[0] + " please?\n", \
+            "Input: " + item_opts_possible[1].capitalize() + " of the new " + item_opts_possible[0] + " please?\n")
+    prod_name, prod_price = inputted_list
+    my_dict = {key_1: prod_name, key_2: prod_price}
+    sql_no_sql_create(my_dict, table_name, "INSERT", connect) #creating a prod or courier row in the sql /cafe database now
+    prod_courier_table = read_from_db(get_item_query(table_name), connect)
+    print("The appended list: ")
+    print_items_formatted (prod_courier_table)
+    return my_dict

@@ -15,14 +15,7 @@ orders_result = """
     
 
 
-def get_item_query(table_name):
-    
-    items_result = f"""
-                SELECT * FROM {table_name}
-                
-                """
-    
-    return items_result
+
 
 # def insert_prod(keys, values):
     
