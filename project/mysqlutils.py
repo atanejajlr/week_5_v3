@@ -2,6 +2,9 @@ import pymysql.cursors
 from pymysql.constants import CLIENT
 import os
 from dotenv import load_dotenv
+from typing import Dict, List, Tuple
+
+from tomlkit import string
 
 def create_connection():
     
@@ -32,7 +35,7 @@ def create_connection():
     return connection
 
 
-def read_from_db(query, connect):
+def read_from_db(query: string, connect):
     
     """
     This function reads all tables of thefrom a MySQL database. It is important that a connection 
@@ -48,7 +51,7 @@ def read_from_db(query, connect):
     return result
 
 
-def execute_query(query, connect):
+def execute_query(query: string, connect, input_data: Tuple):
     
     """
     This function will execute a query on a MySQL database. 
@@ -61,7 +64,10 @@ def execute_query(query, connect):
     
     """
 
-    
     with connect.cursor() as cursor:
-        cursor.execute(query)
+        cursor.execute(query, input_data)
         connect.commit()
+        
+
+
+    

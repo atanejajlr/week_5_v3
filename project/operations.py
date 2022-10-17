@@ -1,7 +1,7 @@
 import time
 from typing import Dict, List, Tuple
 from utils import delete_item, get_input_ints, dump_json, print_items,  \
-    create_item, delete_item, validate_phone_number
+    create_item, delete_item, validate_phone_number, print_items_formatted
 from orders import create_prodids, update_order
 
 
@@ -22,9 +22,10 @@ def update_product(item_list, my_dict):
         
     #new_prod = input(input_string)
     item_list[product_index] = my_dict
+    return product_index
     
-    print("Updated Details: \n")   
-    print_items(item_list)
+    #print("Updated Details: \n")   
+    #print_items(item_list)
     
 def get_main_menu(): 
     
@@ -116,7 +117,8 @@ def get_main_menu_opts(main_option: int, prod_list: List[Dict], couriers_list: L
         
         
 def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[Dict], courier_list: List[Dict], 
-                        orders_dictlist: List[Dict], order_statuslist: List[str]):
+                        orders_dictlist: List[Dict], order_statuslist: List[str], sql_no_sql_create, 
+                        sql_no_sql_update, connect, main_menu_selection):
     
        
     """
@@ -143,8 +145,8 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         
         print("Getting your " + options_tuple[0] + " list....Hold on!")
         time.sleep(4)
-        print_items(options_tuple[-1])
-        
+        print_items_formatted(options_tuple[-1])
+          
     elif item_option == 2 and options_tuple[0] != "order": # creating order or courier in the database
         
         print_items(options_tuple[-1])
@@ -152,9 +154,12 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
                         "Input: " + options_tuple[1].capitalize() + " of the new " + options_tuple[0] + " please?\n")
         name, price_phone = inputted_list
         my_dict = {"name": name, options_tuple[1]: price_phone}
+        sql_no_sql_create(connect, my_dict, main_menu_selection) #creating a prod or courier row in the sql /cafe database now
+        #connect, courier_prod_dict: Dict, table_name
         options_tuple[-1].append(my_dict)
         print("The appended list: ")
-        print_items(options_tuple[-1])
+        print_items_formatted (options_tuple[-1])
+        
         
     elif item_option == 3 and options_tuple[0] != "order": # updating a database
         
@@ -163,9 +168,10 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
                         "Input: " + options_tuple[1].capitalize() + " of the new " + options_tuple[0] + " please?\n")
         name, price_phone = inputted_list
         my_dict = {"name": name, options_tuple[1]: price_phone}              
-        update_product(options_tuple[-1], my_dict)
+        product_index = update_product(options_tuple[-1], my_dict)
+        sql_no_sql_update(connect, my_dict, main_menu_selection)
         print("The updated list: ")
-        print_items(options_tuple[-1])
+        print_items_formatted(options_tuple[-1])
         
     elif item_option == 4  or item_option == 5: # deleting from the database
         _ = delete_item(options_tuple[-1])
@@ -190,7 +196,7 @@ def get_item_menu_opts(item_option: int, options_tuple: Tuple, prod_list: List[D
         print("Appended order details:\n")
         print_items(options_tuple[-1])
         
-    elif item_option == 3 and options_tuple[0] == "order": #creating order in the database
+    elif item_option == 3 and options_tuple[0] == "order": #updating order in the database
         
         print_items(options_tuple[-1])
         range_limit = len(options_tuple[-1]) - 1
