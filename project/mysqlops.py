@@ -75,7 +75,7 @@ def insert_execute(courier_prod_dict, table_name, insert_or_ignore, connect):
     return insert_query
         
     
-def delete_item(table_name, id_name, id_number):
+def delete_execute(table_name, id_name, id_number):
     
     delete_query = f"""
     
@@ -86,7 +86,7 @@ def delete_item(table_name, id_name, id_number):
     
     return delete_query
 
-def update_query(table_name, courier_prod_dict, id, connect):
+def update_execute(table_name, courier_prod_dict, id, item_id, connect):
     
      #sql_update_query = f"""UPDATE {table_name} set {variable_name} = %s where {id} = %s"""
      #return sql_update_query
@@ -106,6 +106,9 @@ def update_query(table_name, courier_prod_dict, id, connect):
     
     keys = tuple(courier_prod_dict)
     values = tuple(courier_prod_dict.values()) 
+    values_list = list(values)
+    values_list.append(id)
+    values_new = tuple(values_list)
     
     
     if len(keys) == 1:
@@ -114,7 +117,7 @@ def update_query(table_name, courier_prod_dict, id, connect):
         
         update_query = f"""
         
-        UPDATE {table_name} SET {variable_1} = %s  where {id} = %s
+        UPDATE {table_name} SET {variable_1} = %s  where {item_id} = %s
         
         
         """
@@ -125,7 +128,7 @@ def update_query(table_name, courier_prod_dict, id, connect):
         
         update_query = f"""
         
-        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s where {id} = %s
+        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s where {item_id} = %s
         
         
         """
@@ -136,7 +139,7 @@ def update_query(table_name, courier_prod_dict, id, connect):
         
         update_query = f"""
         
-        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s , {variable_3} = %s where {id} = %s
+        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s , {variable_3} = %s where {item_id} = %s
         
         
         """
@@ -146,7 +149,7 @@ def update_query(table_name, courier_prod_dict, id, connect):
         raise ValueError("Length of the tuple for the INSERT/INSERT IGNORE query \
                         is not in the supported range")
         
-    execute_query(update_query, connect, values) 
+    execute_query(update_query, connect, values_new) 
     
     return update_query
     
