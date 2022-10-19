@@ -97,24 +97,12 @@ def print_items_formatted(list_dict):
     rows =  [dict_item.values() for dict_item in list_dict]
     print(tabulate.tabulate(rows, header))
     
-      
-def delete_item(item_list: List):
-    
-    """
-    
-    This function deletes a product from a list as defined by the user
-    
-    """
-    
-    print_items(item_list)
-    product_index = int(input('Input: Index Value to be deleted?'))
-    while product_index > len(item_list):
-        product_index = int(input('Input: Correct index value to be deleted, please?'))
-    del item_list[product_index]
-    print("Revised List:")   
-    print_items(item_list)
-    return item_list
 
+def print_dict_formatted(headers, my_dict):
+    
+    print(tabulate.tabulate(my_dict.items(), headers = headers))  
+    
+    
 def dump_json(*sql_nosql_inputs):
     
     data, file_name = sql_nosql_inputs

@@ -1,3 +1,4 @@
+from sqlite3 import connect
 from mysqlutils import read_from_db, execute_query
 from typing import Dict, List, Tuple
 
@@ -14,6 +15,20 @@ orders_result = """
 
     """ 
     
+price_summary = """
+
+SELECT orders.order_id, customers.customer_name,
+SUM(products.prod_price * order_items.prod_qty) AS total_price_per_id
+FROM orders
+INNER JOIN customers ON customers.customer_id = orders.order_id
+INNER JOIN couriers ON couriers.driver_id = orders.driver_id
+INNER JOIN order_items ON orders.order_id = order_items. order_id
+INNER JOIN products ON products.prod_id = order_items.prod_id
+GROUP BY orders.order_id 
+ORDER BY customers.customer_name;
+
+"""
+    
     
 def get_item_query(table_name):
     
@@ -24,130 +39,109 @@ def get_item_query(table_name):
     
     return items_result
 
-
+def insert_execute_records(courier_prod_dict, list_tuples, table_name, insert_or_ignore, connect):
+    
+    keys = tuple(courier_prod_dict) # unpacking dictionary keys into a tuple
+    
+    str1 =  f"""{insert_or_ignore} {table_name}("""
+    str2 =  f"""VALUES("""
+    
+    index = 0
+    for _ in keys:
+        
+        str1= str1 + f"""{keys[index]},"""
+        str2 = str2 + f"""%s,"""
+        index = index + 1
+     
+    str1 = str1[:-1] 
+    str2 = str2[:-1]
+    
+    str3 = str1 + f""")"""
+    str4 = str2 + f""")""" 
+    
+    insert_query = str3 + str4
+        
+    records_to_insert = list_tuples
+    cursor = connect.cursor()
+    cursor.executemany(insert_query, records_to_insert)
+    connect.commit()
+    
+    
 def insert_execute(courier_prod_dict, table_name, insert_or_ignore, connect):
     
     """
     
-    1) This function can be used for an INSERT or an
-    INSERT IGNORE QUERY.
-    2) Hence it receives a string (insert_or_ignore) which is
-    either INSERT or INSERT IGNORE
-    3) It receives the keys of the dictionary as a tuple
-    which may be of length of 2 or 3.
+    In this function we make fstrings for a parametrised 
+    insert query in mysql
+    
     
     """
-    
     keys = tuple(courier_prod_dict) # unpacking dictionary keys into a tuple
     values = tuple(courier_prod_dict.values())
+    str1 =  f"""{insert_or_ignore} {table_name}("""
+    str2 =  f"""VALUES("""
     
+    index = 0
+    for _ in keys:
+        
+        str1= str1 + f"""{keys[index]},"""
+        str2 = str2 + f"""%s,"""
+        index = index + 1
+     
+    str1 = str1[:-1] 
+    str2 = str2[:-1]
     
-    if len(keys) == 2:
-        
-        variable_1, variable_2 = keys
-        
-        insert_query = f"""
-        
-        {insert_or_ignore} {table_name}
-        ({variable_1}, {variable_2}) VALUES (%s, %s)
-        
-        
-        """
-        
-    elif len(keys == 3):
-        
-        variable_1, variable_2, variable_3 = keys
-        
-        insert_query = f"""
-        
-        INSERT INTO {table_name}
-        ({variable_1}, {variable_2}, {variable_3}) VALUES (%s, %s, %s)
-        
-        """
-        
-    else:
-        
-        raise ValueError("Length of the tuple for the INSERT/INSERT IGNORE query \
-                        is not in the supported range")
-        
+    str3 = str1 + f""")"""
+    str4 = str2 + f""")""" 
+    
+    insert_query = str3 + str4
+    
     execute_query(insert_query, connect, values) 
     
     return insert_query
+
         
     
-def delete_execute(table_name, id_name, id_number):
+def delete_execute(table_name, id_name, id_number, connect):
     
+    values = (id_number)
     delete_query = f"""
     
-    DELETE FROM {table_name} WHERE {id_name} = {id_number}
+    DELETE FROM {table_name} WHERE {id_name} = %s
     
     
     """
+    
+    execute_query(delete_query, connect, values)
     
     return delete_query
 
-def update_execute(table_name, courier_prod_dict, id, item_id, connect):
-    
-     #sql_update_query = f"""UPDATE {table_name} set {variable_name} = %s where {id} = %s"""
-     #return sql_update_query
-     
-    
-        
-    """
-    
-    1) This function can be used for an INSERT or an
-    INSERT IGNORE QUERY.
-    2) Hence it receives a string (insert_or_ignore) which is
-    either INSERT or INSERT IGNORE
-    3) It receives the keys of the dictionary as a tuple
-    which may be of length of 2 or 3.
+def update_execute(table_name, courier_prod_dict, id, id_name, connect):
     
     """
+    In this function we form fstrings for a parametrised update query.
     
+    """
     keys = tuple(courier_prod_dict)
     values = tuple(courier_prod_dict.values()) 
     values_list = list(values)
     values_list.append(id)
     values_new = tuple(values_list)
     
+    str1 = f"""UPDATE {table_name} SET"""
     
-    if len(keys) == 1:
+    index = 0
+    for _ in keys:
         
-        variable_1, variable_2 = keys
+        str1 = str1 + f""" {keys[index]} = %s,"""
+        index = index + 1
         
-        update_query = f"""
-        
-        UPDATE {table_name} SET {variable_1} = %s  where {item_id} = %s
-        
-        
-        """
+    str1 = str1[:-1]
+    str2 = f""" where {id_name} = %s"""
     
-    elif len(keys) == 2:
-        
-        variable_1, variable_2 = keys
-        
-        update_query = f"""
-        
-        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s where {item_id} = %s
-        
-        
-        """
-        
-    elif len(keys == 3):
-        
-        variable_1, variable_2, variable_3 = keys
-        
-        update_query = f"""
-        
-        UPDATE {table_name} SET {variable_1} = %s, {variable_2} = %s , {variable_3} = %s where {item_id} = %s
-        
-        
-        """
-        
-    else:
-        
-        raise ValueError("Length of the tuple for the INSERT/INSERT IGNORE query \
-                        is not in the supported range")
+    update_query = str1 + str2
+    
+     
         
     execute_query(update_query, connect, values_new) 
     
@@ -236,20 +230,33 @@ def process_order(orders_dict, connect):
                 
             """
     customer_id = read_from_db(query_last, connect)
+    cust_id = customer_id[0]['LAST_INSERT_ID()']
     query = get_random_column("driver_id", "couriers")
     driver_id = read_from_db(query, connect)
-    
-    new_order = {'customer_id': customer_id, 'status_id': 2, 'driver_id': driver_id}
+    driver_id = driver_id[0]['driver_id']
+    new_order = {'customer_id': cust_id, 'status_id': 2, 'driver_id': driver_id}
     _ = insert_execute(new_order, "orders", 'INSERT', connect)
     
     order_id = read_from_db(query_last, connect)
+    order_id = order_id[0]['LAST_INSERT_ID()']
     
     #Now, we have to insert multiple records into the database
+    #This is for the table order_items
+    #We already have collected/processed as data as list of tuples 
+    #from the user
+    #It is just that we have to ammend the order id at the start of the tuple.
+    #We cconvert the tuple to list as it is immutable and then convert it back to tuple 
+
     
-    item_qty = {'item_qty': orders_dict['item_qty']} #the dictionary must contin a tuple of item and quantity in a list #
-    # that is we have to take the item and quantity from the end user and update in a list wit each entry
+    list_tuples = orders_dict['items']
+    list_of_lists = [list(ele) for ele in list_tuples]
+    for x in list_of_lists:
+        x.insert(0, order_id)
     
-    _ = insert_execute(item_qty, "order_items", 'INSERT', connect )
+    list_tuples2 = [tuple(x) for x in list_of_lists]
+
+    my_dict = {'order_id':1, 'prod_id': 1, 'prod_qty': 1} #dummy dictionary
+    _ = insert_execute_records(my_dict, list_tuples2, "order_items", 'INSERT', connect)
     
             
         
@@ -258,9 +265,10 @@ def get_random_column(column_name, table_name):
      
     query = f""" 
             SELECT {column_name} FROM {table_name}
-            ORDER BY RANDOM()
+            ORDER BY RAND()
             LIMIT 1  
             """
+    return query
      
      
      

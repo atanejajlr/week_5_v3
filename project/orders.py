@@ -5,12 +5,13 @@ def update_order(order_dict: Dict, prod_list: List[Dict]):
     
     for key, value in order_dict.items():
         
-        if key != "items":
+        if key != "items" and key != "order_id":
             
             new_value = input("Input: Please enter the " + key + "? ")
             if new_value != "":
                 order_dict[key] = new_value
-        else:
+                
+        if key == "items":
             
             new_value = input("Input: Do you want to append menu your items? Leave this blank if  you do not wish to edit your menu \n")
             if new_value != "":
@@ -27,17 +28,15 @@ def create_prodids(prod_list, item_list):
     
     """
     
-    print("Menu of available drinks/food in the cafe \n")
-    print_items(prod_list)
-    range_items = len(prod_list) - 1
-    print("You will now have to select the ids corresponding to the menu items you'd like to select\n")
+    range_items = len(prod_list) 
+    print("You will now have to select the ids and quantities \ncorresponding to the menu items you'd like to select")
     cont_option = 1
     while (cont_option == 1 ):
+        print("Product id:")
         prod_id = get_input_ints(range_items)
-        if prod_id > range_items:
-            print("Enter food/drink id in the range specified, please \n")
-            prod_id = get_input_ints(range_items)
-        item_list.append(prod_id)
+        print("Item quantity:")
+        qty_item = get_input_ints(5)
+        item_list.append((prod_id, qty_item))
         print("Do you wish to continue?\n")
         print("Enter 1 to continue or any other number to discontinue\n")
         cont_option = get_input_ints(10)
