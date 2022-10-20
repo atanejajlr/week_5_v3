@@ -65,6 +65,7 @@ def insert_execute_records(courier_prod_dict, list_tuples, table_name, insert_or
     cursor = connect.cursor()
     cursor.executemany(insert_query, records_to_insert)
     connect.commit()
+    return insert_query
     
     
 def insert_execute(courier_prod_dict, table_name, insert_or_ignore, connect):
@@ -106,11 +107,7 @@ def delete_execute(table_name, id_name, id_number, connect):
     
     values = (id_number)
     delete_query = f"""
-    
-    DELETE FROM {table_name} WHERE {id_name} = %s
-    
-    
-    """
+    DELETE FROM {table_name} WHERE {id_name} = %s"""
     
     execute_query(delete_query, connect, values)
     

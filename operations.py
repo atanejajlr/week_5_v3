@@ -170,15 +170,15 @@ def get_item_menu_opts(crud_option: int, item_opts_possible: Tuple, connect, mai
              
     elif crud_option == 2 and item_opts_possible[0] == "product": # creating a new product in the database
         
-        create_product_courier(item_opts_possible, "prod_name", "prod_price", "products", connect, sql_no_sql_create)
+        _ = create_product_courier(item_opts_possible, "prod_name", "prod_price", "products", connect, sql_no_sql_create)
         
     elif crud_option == 2 and item_opts_possible[0] == "courier": # creating a new courier in the database
         
-        create_product_courier(item_opts_possible, "driver_name", "driver_phone", "couriers", connect, sql_no_sql_create)
+        _ = create_product_courier(item_opts_possible, "driver_name", "driver_phone", "couriers", connect, sql_no_sql_create)
         
     elif crud_option == 3 and item_opts_possible[0] == "product": # updating the product database
         
-        my_dict = create_product_courier(item_opts_possible, "prod_name", "prod_price", None, connect, sql_no_sql_create)             
+        _ = create_product_courier(item_opts_possible, "prod_name", "prod_price", None, connect, sql_no_sql_create)             
         _ = update_product(item_opts_possible[-1], my_dict, "products", connect, "prod_id", sql_no_sql_update)
 
      
@@ -259,7 +259,7 @@ def create_product_courier(item_opts_possible, key_1, key_2, table_name, connect
     prod_courier_table = read_from_db(get_item_query(table_name), connect)
     print("The appended list: ")
     print_items_formatted (prod_courier_table)
-    return my_dict
+    return prod_courier_table
 
 def delete_item(item_list: List, sql_no_sql_delete, table_name, id_name, connect):
     
